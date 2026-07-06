@@ -1,4 +1,4 @@
-name: gammaai_app
+name: gammaai
 description: "GammaAI - agentic AI search, Flutter frontend built with MVVM architecture."
 publish_to: 'none'
 version: 1.0.0+1
@@ -12,6 +12,11 @@ dependencies:
   http: ^1.1.0          # Service layer: talks to the FastAPI backend
   provider: ^6.1.2      # ViewModel layer: ChangeNotifier + state binding
   cupertino_icons: ^1.0.8
+  image_picker: ^1.0.7
+  speech_to_text: ^6.6.0
+  flutter_tts: ^3.8.5
+  path_provider: ^2.1.2
+  record: ^5.0.4
 
 dev_dependencies:
   flutter_test:

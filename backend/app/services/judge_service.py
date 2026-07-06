@@ -26,7 +26,7 @@ from typing import List, Literal
 from .llm_providers import PROVIDER_FUNCS, ProviderAnswer
 
 JUDGE_PROVIDER = "claude"   # which provider acts as referee
-JUDGE_MODEL = "claude-sonnet-4-6"
+JUDGE_MODEL = "claude-3-5-sonnet-20240620"
 
 JudgeMode = Literal["pick_best", "synthesize"]
 

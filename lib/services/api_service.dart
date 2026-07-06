@@ -78,6 +78,7 @@ class ApiService {
   Future<ComparisonResponse> compare(
     String query, {
     String mode = 'synthesize',
+    String? imageB64,
   }) async {
     final uri = Uri.parse('$baseUrl/compare');
 
@@ -87,10 +88,12 @@ class ApiService {
           .post(
             uri,
             headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({'query': query, 'mode': mode}),
+            body: jsonEncode({
+              'query': query,
+              'mode': mode,
+              if (imageB64 != null) 'image_b64': imageB64,
+            }),
           )
-          // Longer timeout than /search: this call waits on FOUR separate
-          // LLM providers plus a judge call on top of that.
           .timeout(const Duration(seconds: 90));
     } catch (e) {
       throw ApiException(
@@ -112,6 +115,23 @@ class ApiService {
 
     final decoded = jsonDecode(response.body) as Map<String, dynamic>;
     return ComparisonResponse.fromJson(decoded);
+  }
+
+  /// Sends an audio file to the backend for transcription.
+  Future<String> transcribe(String filePath) async {
+    final uri = Uri.parse('$baseUrl/transcribe');
+    final request = http.MultipartRequest('POST', uri);
+    request.files.add(await http.MultipartFile.fromPath('file', filePath));
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    if (response.statusCode != 200) {
+      throw ApiException('Transcription failed: ${response.body}');
+    }
+
+    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+    return decoded['text'] as String;
   }
 
   /// Simple reachability check, e.g. for an app-startup banner.

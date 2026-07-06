@@ -6,7 +6,9 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/search_response.dart';
+import '../viewmodels/search_viewmodel.dart';
 
 class ResultCard extends StatelessWidget {
   final SearchResponse result;
@@ -20,11 +22,22 @@ class ResultCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Answer',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Answer',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.volume_up_outlined),
+                onPressed: () {
+                  context.read<SearchViewModel>().speak(result.final_.answer);
+                },
+              ),
+            ],
           ),
           const SizedBox(height: 8),
           SelectableText(

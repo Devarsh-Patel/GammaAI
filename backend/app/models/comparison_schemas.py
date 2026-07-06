@@ -38,3 +38,4 @@ class ComparisonResponse(BaseModel):
 class ComparisonRequest(BaseModel):
     query: str
     mode: str = "synthesize"       # or "pick_best"
+    image_b64: Optional[str] = None

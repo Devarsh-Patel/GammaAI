@@ -34,7 +34,7 @@ async def compare(request: ComparisonRequest) -> ComparisonResponse:
         raise HTTPException(status_code=400, detail="mode must be 'pick_best' or 'synthesize'.")
 
     try:
-        provider_answers = await ask_all_providers(query)
+        provider_answers = await ask_all_providers(query, image_b64=request.image_b64)
     except RuntimeError as e:
         raise HTTPException(status_code=500, detail=str(e))
 

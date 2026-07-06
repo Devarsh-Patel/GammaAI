@@ -13,7 +13,11 @@
 library;
 
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import '../models/search_response.dart';
 import '../models/comparison_response.dart';
 import '../services/api_service.dart';
@@ -69,6 +73,18 @@ class SearchViewModel extends ChangeNotifier {
       t.cancel();
     }
     _activeTimers.clear();
+  }
+
+  /// Resets the ViewModel to its initial idle state, clearing all results and errors.
+  void reset() {
+    _clearTimers();
+    _stage = SearchStage.idle;
+    _result = null;
+    _errorMessage = null;
+    _compareStage = CompareStage.idle;
+    _comparison = null;
+    _compareError = null;
+    notifyListeners();
   }
 
   /// Called by the View when the user submits a query.
@@ -128,16 +144,42 @@ class SearchViewModel extends ChangeNotifier {
   ComparisonResponse? _comparison;
   String? _compareError;
 
+  final ImagePicker _picker = ImagePicker();
+  final FlutterTts _tts = FlutterTts();
+  String? _selectedImageB64;
+  File? _selectedImageFile;
+
   CompareStage get compareStage => _compareStage;
   ComparisonResponse? get comparison => _comparison;
   String? get compareError => _compareError;
   bool get isComparing => _compareStage == CompareStage.comparing;
+  File? get selectedImageFile => _selectedImageFile;
+
+  Future<void> pickImage() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      _selectedImageFile = File(image.path);
+      final bytes = await image.readAsBytes();
+      _selectedImageB64 = base64Encode(bytes);
+      notifyListeners();
+    }
+  }
+
+  void clearImage() {
+    _selectedImageFile = null;
+    _selectedImageB64 = null;
+    notifyListeners();
+  }
+
+  Future<void> speak(String text) async {
+    await _tts.speak(text);
+  }
 
   /// Called by the View when the user asks for the multi-model comparison
   /// instead of (or in addition to) the regular planner/search pipeline.
   Future<void> runComparison(String rawQuery, {String mode = 'synthesize'}) async {
     final query = rawQuery.trim();
-    if (query.isEmpty) return;
+    if (query.isEmpty && _selectedImageB64 == null) return;
 
     _comparison = null;
     _compareError = null;
@@ -145,7 +187,11 @@ class SearchViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await _apiService.compare(query, mode: mode);
+      final response = await _apiService.compare(
+        query, 
+        mode: mode,
+        imageB64: _selectedImageB64,
+      );
       _comparison = response;
       _compareStage = CompareStage.done;
     } on ApiException catch (e) {

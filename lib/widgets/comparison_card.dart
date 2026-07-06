@@ -6,7 +6,9 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/comparison_response.dart';
+import '../viewmodels/search_viewmodel.dart';
 
 class ComparisonCard extends StatelessWidget {
   final ComparisonResponse result;
@@ -61,6 +63,13 @@ class ComparisonCard extends StatelessWidget {
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
+              ),
+              const Spacer(),
+              IconButton(
+                icon: const Icon(Icons.volume_up_outlined),
+                onPressed: () {
+                  context.read<SearchViewModel>().speak(result.finalAnswer);
+                },
               ),
             ],
           ),

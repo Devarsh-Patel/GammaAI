@@ -14,6 +14,7 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../viewmodels/search_viewmodel.dart';
 import '../widgets/result_card.dart';
 import '../widgets/comparison_card.dart';
@@ -27,6 +28,8 @@ class SearchView extends StatefulWidget {
 
 class _SearchViewState extends State<SearchView> {
   final TextEditingController _controller = TextEditingController();
+  final stt.SpeechToText _speech = stt.SpeechToText();
+  bool _isListening = false;
 
   // Whether the last submit should hit the multi-LLM council (/compare)
   // instead of the normal planner/search pipeline (/search).
@@ -45,6 +48,23 @@ class _SearchViewState extends State<SearchView> {
     final viewModel = context.watch<SearchViewModel>();
     final busy = viewModel.isLoading || viewModel.isComparing;
 
+    void listen() async {
+      if (!_isListening) {
+        bool available = await _speech.initialize();
+        if (available) {
+          setState(() => _isListening = true);
+          _speech.listen(onResult: (val) {
+            setState(() {
+              _controller.text = val.recognizedWords;
+            });
+          });
+        }
+      } else {
+        setState(() => _isListening = false);
+        _speech.stop();
+      }
+    }
+
     void submit() {
       final vm = context.read<SearchViewModel>();
       if (_useCouncil) {
@@ -60,15 +80,54 @@ class _SearchViewState extends State<SearchView> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
+            if (viewModel.selectedImageFile != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Stack(
+                  children: [
+                    Image.file(viewModel.selectedImageFile!, height: 100),
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: IconButton(
+                        icon: const Icon(Icons.close, color: Colors.red),
+                        onPressed: viewModel.clearImage,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             Row(
               children: [
+                IconButton(
+                  icon: Icon(_isListening ? Icons.mic : Icons.mic_none),
+                  onPressed: busy ? null : listen,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.image_outlined),
+                  onPressed: busy ? null : viewModel.pickImage,
+                ),
                 Expanded(
                   child: TextField(
                     controller: _controller,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       hintText: 'Ask anything...',
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
+                      suffixIcon: _controller.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _controller.clear();
+                                viewModel.reset();
+                                setState(() {});
+                              },
+                            )
+                          : null,
                     ),
+                    onChanged: (text) {
+                      // Rebuild to show/hide the clear button
+                      setState(() {});
+                    },
                     // context.read (not watch) here: we're just CALLING a
                     // method, not subscribing this callback to rebuilds.
                     onSubmitted: (_) => submit(),

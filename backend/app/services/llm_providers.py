@@ -49,12 +49,28 @@ def _now_ms() -> int:
 # --------------------------------------------------------------------------
 # Claude (Anthropic)
 # --------------------------------------------------------------------------
-async def ask_claude(prompt: str, model: str = "claude-sonnet-4-6") -> ProviderAnswer:
+async def ask_claude(
+    prompt: str,
+    model: str = "claude-3-5-sonnet-20240620",
+    image_b64: Optional[str] = None
+) -> ProviderAnswer:
     key = os.getenv("ANTHROPIC_API_KEY")
     if not key:
         return ProviderAnswer("claude", model, False, error="ANTHROPIC_API_KEY not set")
 
     started = _now_ms()
+    content = []
+    if image_b64:
+        content.append({
+            "type": "image",
+            "source": {
+                "type": "base64",
+                "media_type": "image/jpeg",
+                "data": image_b64,
+            },
+        })
+    content.append({"type": "text", "text": prompt})
+
     try:
         async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT) as client:
             resp = await client.post(
@@ -67,7 +83,7 @@ async def ask_claude(prompt: str, model: str = "claude-sonnet-4-6") -> ProviderA
                 json={
                     "model": model,
                     "max_tokens": 1024,
-                    "messages": [{"role": "user", "content": prompt}],
+                    "messages": [{"role": "user", "content": content}],
                 },
             )
         resp.raise_for_status()
@@ -86,12 +102,23 @@ async def ask_claude(prompt: str, model: str = "claude-sonnet-4-6") -> ProviderA
 # --------------------------------------------------------------------------
 # OpenAI (ChatGPT)
 # --------------------------------------------------------------------------
-async def ask_openai(prompt: str, model: str = "gpt-4o") -> ProviderAnswer:
+async def ask_openai(
+    prompt: str,
+    model: str = "gpt-4o",
+    image_b64: Optional[str] = None
+) -> ProviderAnswer:
     key = os.getenv("OPENAI_API_KEY")
     if not key:
         return ProviderAnswer("openai", model, False, error="OPENAI_API_KEY not set")
 
     started = _now_ms()
+    content = [{"type": "text", "text": prompt}]
+    if image_b64:
+        content.append({
+            "type": "image_url",
+            "image_url": {"url": f"data:image/jpeg;base64,{image_b64}"},
+        })
+
     try:
         async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT) as client:
             resp = await client.post(
@@ -102,7 +129,7 @@ async def ask_openai(prompt: str, model: str = "gpt-4o") -> ProviderAnswer:
                 },
                 json={
                     "model": model,
-                    "messages": [{"role": "user", "content": prompt}],
+                    "messages": [{"role": "user", "content": content}],
                     "max_tokens": 1024,
                 },
             )
@@ -119,7 +146,11 @@ async def ask_openai(prompt: str, model: str = "gpt-4o") -> ProviderAnswer:
 # --------------------------------------------------------------------------
 # Google Gemini
 # --------------------------------------------------------------------------
-async def ask_gemini(prompt: str, model: str = "gemini-2.0-flash") -> ProviderAnswer:
+async def ask_gemini(
+    prompt: str,
+    model: str = "gemini-1.5-flash",
+    image_b64: Optional[str] = None
+) -> ProviderAnswer:
     key = os.getenv("GOOGLE_API_KEY")
     if not key:
         return ProviderAnswer("gemini", model, False, error="GOOGLE_API_KEY not set")
@@ -129,11 +160,21 @@ async def ask_gemini(prompt: str, model: str = "gemini-2.0-flash") -> ProviderAn
         f"https://generativelanguage.googleapis.com/v1beta/models/"
         f"{model}:generateContent?key={key}"
     )
+
+    parts = [{"text": prompt}]
+    if image_b64:
+        parts.append({
+            "inline_data": {
+                "mime_type": "image/jpeg",
+                "data": image_b64
+            }
+        })
+
     try:
         async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT) as client:
             resp = await client.post(
                 url,
-                json={"contents": [{"parts": [{"text": prompt}]}]},
+                json={"contents": [{"parts": parts}]},
             )
         resp.raise_for_status()
         data = resp.json()
@@ -148,12 +189,24 @@ async def ask_gemini(prompt: str, model: str = "gemini-2.0-flash") -> ProviderAn
 # --------------------------------------------------------------------------
 # Grok (xAI) — OpenAI-compatible chat completions endpoint
 # --------------------------------------------------------------------------
-async def ask_grok(prompt: str, model: str = "grok-4") -> ProviderAnswer:
+async def ask_grok(
+    prompt: str,
+    model: str = "grok-vision-beta",
+    image_b64: Optional[str] = None
+) -> ProviderAnswer:
     key = os.getenv("XAI_API_KEY")
     if not key:
         return ProviderAnswer("grok", model, False, error="XAI_API_KEY not set")
 
     started = _now_ms()
+    # Grok vision uses OpenAI format
+    content = [{"type": "text", "text": prompt}]
+    if image_b64:
+        content.append({
+            "type": "image_url",
+            "image_url": {"url": f"data:image/jpeg;base64,{image_b64}"},
+        })
+
     try:
         async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT) as client:
             resp = await client.post(
@@ -164,7 +217,7 @@ async def ask_grok(prompt: str, model: str = "grok-4") -> ProviderAnswer:
                 },
                 json={
                     "model": model,
-                    "messages": [{"role": "user", "content": prompt}],
+                    "messages": [{"role": "user", "content": content}],
                     "max_tokens": 1024,
                 },
             )

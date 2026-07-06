@@ -31,7 +31,7 @@ def configured_providers() -> List[str]:
     return [name for name, env_var in _REQUIRED_KEY.items() if os.getenv(env_var)]
 
 
-async def ask_all_providers(prompt: str) -> List[ProviderAnswer]:
+async def ask_all_providers(prompt: str, image_b64: Optional[str] = None) -> List[ProviderAnswer]:
     """Runs every provider that has a key configured, in parallel."""
     active = configured_providers()
     if not active:
@@ -40,6 +40,6 @@ async def ask_all_providers(prompt: str) -> List[ProviderAnswer]:
             + ", ".join(_REQUIRED_KEY.values())
         )
 
-    tasks = [PROVIDER_FUNCS[name](prompt) for name in active]
+    tasks = [PROVIDER_FUNCS[name](prompt, image_b64=image_b64) for name in active]
     results = await asyncio.gather(*tasks)
     return list(results)
