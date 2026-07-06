@@ -4,6 +4,7 @@ from app.models.search_schemas import (
     SubTask, SearchResultItem, SynthesizedAnswer
 )
 from app.services.llm_providers import ask_claude
+from app.services.search_service import perform_web_search
 import json
 
 router = APIRouter()
@@ -18,34 +19,43 @@ async def search(request: SearchRequest):
     plan_prompt = f"Plan a search for: {query}. Break it into 3 sub-tasks. Return ONLY JSON: {{\"sub_tasks\": [\"desc1\", \"desc2\", \"desc3\"]}}"
     plan_resp = await ask_claude(plan_prompt)
     if not plan_resp.ok:
-        raise HTTPException(status_code=500, detail="Planning failed")
+        raise HTTPException(status_code=500, detail=f"Planning failed: {plan_resp.error}")
 
     try:
-        plan_data = json.loads(plan_resp.answer)
+        # Clean potential markdown from LLM
+        clean_json = plan_resp.answer.replace("```json", "").replace("```", "").strip()
+        plan_data = json.loads(clean_json)
         sub_tasks = [SubTask(id=i+1, description=d) for i, d in enumerate(plan_data["sub_tasks"])]
     except:
         sub_tasks = [SubTask(id=1, description=f"Search for {query}")]
 
     plan = PlannerOutput(original_query=query, sub_tasks=sub_tasks)
 
-    # 2. Search (Mocking with LLM findings)
+    # 2. Real Web Search
     search_results = []
-    all_sources = ["https://en.wikipedia.org", "https://news.google.com"]
+    all_sources = []
+    
     for st in sub_tasks:
+        findings = await perform_web_search(st.description)
+        raw_text = "\n".join([f"{f['title']}: {f['snippet']}" for f in findings])
+        links = [f['link'] for f in findings]
+        all_sources.extend(links)
+        
         search_results.append(SearchResultItem(
             sub_task_id=st.id,
             sub_task_description=st.description,
-            raw_findings=f"Findings for {st.description}...",
-            sources=all_sources
+            raw_findings=raw_text or "No findings found.",
+            sources=links
         ))
 
     # 3. Synthesize
-    synth_prompt = f"Synthesize an answer for '{query}' based on these findings: {[r.raw_findings for r in search_results]}"
+    context = "\n---\n".join([r.raw_findings for r in search_results])
+    synth_prompt = f"Using this search context:\n{context}\n\nSynthesize a comprehensive answer for the user's question: '{query}'"
     synth_resp = await ask_claude(synth_prompt)
 
     final = SynthesizedAnswer(
-        answer=synth_resp.answer if synth_resp.ok else "Synthesis failed",
-        sources=all_sources
+        answer=synth_resp.answer if synth_resp.ok else f"Synthesis failed: {synth_resp.error}",
+        sources=list(set(all_sources)) # Unique sources
     )
 
     return SearchResponse(

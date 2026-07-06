@@ -10,6 +10,7 @@
 library;
 
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
 import 'package:http/http.dart' as http;
 import '../models/search_response.dart';
@@ -21,15 +22,16 @@ class ApiService {
   /// Resolves the correct base URL for whichever platform/emulator this
   /// build is currently running on.
   static String get baseUrl {
-    if (Platform.isAndroid) {
-      // Assumes the Android EMULATOR. For a real Android phone, swap in
-      // _physicalDeviceIp instead.
-      return 'http://10.0.2.2:$_port';
-    } else if (Platform.isIOS) {
-      // Assumes the iOS SIMULATOR. For a real iPhone, swap in
-      // _physicalDeviceIp instead.
+    if (kIsWeb) {
+      // For web, we usually hit the same host or a specific API domain.
+      // During local dev, 'localhost' works if the backend is on the same machine.
       return 'http://localhost:$_port';
     }
+    if (Platform.isAndroid) {
+      // Assumes the Android EMULATOR.
+      return 'http://10.0.2.2:$_port';
+    }
+    // iOS Simulator or macOS Desktop
     return 'http://localhost:$_port';
   }
 
