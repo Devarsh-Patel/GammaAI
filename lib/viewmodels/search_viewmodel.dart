@@ -39,7 +39,7 @@ class SearchViewModel extends ChangeNotifier {
   SearchStage _stage = SearchStage.idle;
   SearchResponse? _result;
   String? _errorMessage;
-  Timer? _stageTimer;
+  final List<Timer> _activeTimers = [];
 
   // --- Public read-only getters the View binds to ---
   SearchStage get stage => _stage;
@@ -64,6 +64,13 @@ class SearchViewModel extends ChangeNotifier {
     }
   }
 
+  void _clearTimers() {
+    for (var t in _activeTimers) {
+      t.cancel();
+    }
+    _activeTimers.clear();
+  }
+
   /// Called by the View when the user submits a query.
   ///
   /// NOTE: the backend currently returns ONE response after the full
@@ -80,31 +87,31 @@ class SearchViewModel extends ChangeNotifier {
     _stage = SearchStage.planning;
     notifyListeners();
 
-    _stageTimer?.cancel();
-    _stageTimer = Timer(const Duration(seconds: 2), () {
+    _clearTimers();
+    _activeTimers.add(Timer(const Duration(seconds: 2), () {
       if (_stage == SearchStage.planning) {
         _stage = SearchStage.searching;
         notifyListeners();
       }
-    });
-    Timer(const Duration(seconds: 5), () {
+    }));
+    _activeTimers.add(Timer(const Duration(seconds: 5), () {
       if (_stage == SearchStage.searching) {
         _stage = SearchStage.synthesizing;
         notifyListeners();
       }
-    });
+    }));
 
     try {
       final response = await _apiService.search(query);
-      _stageTimer?.cancel();
+      _clearTimers();
       _result = response;
       _stage = SearchStage.done;
     } on ApiException catch (e) {
-      _stageTimer?.cancel();
+      _clearTimers();
       _errorMessage = e.message;
       _stage = SearchStage.error;
     } catch (e) {
-      _stageTimer?.cancel();
+      _clearTimers();
       _errorMessage = 'Something unexpected went wrong: $e';
       _stage = SearchStage.error;
     }
@@ -154,7 +161,7 @@ class SearchViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
-    _stageTimer?.cancel();
+    _clearTimers();
     super.dispose();
   }
 }

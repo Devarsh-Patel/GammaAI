@@ -122,7 +122,7 @@ class _ProviderTile extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 6),
       color: isWinner
-          ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.4)
+          ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.4)
           : null,
       child: ExpansionTile(
         leading: Icon(icon),

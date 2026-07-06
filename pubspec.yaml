@@ -4,12 +4,12 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.3.0 <4.0.0'
+  sdk: '>=3.1.0 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
-  http: ^1.2.2          # Service layer: talks to the FastAPI backend
+  http: ^1.1.0          # Service layer: talks to the FastAPI backend
   provider: ^6.1.2      # ViewModel layer: ChangeNotifier + state binding
   cupertino_icons: ^1.0.8
 

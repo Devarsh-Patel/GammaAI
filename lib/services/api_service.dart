@@ -16,11 +16,6 @@ import '../models/search_response.dart';
 import '../models/comparison_response.dart';
 
 class ApiService {
-  /// Edit this to your machine's LAN IP when testing on a PHYSICAL device
-  /// (find it with `ipconfig getifaddr en0` on Mac). Neither `localhost`
-  /// nor `10.0.2.2` reaches your dev machine from a real phone.
-  static const String _physicalDeviceIp = '192.168.1.42'; // <-- EDIT THIS
-
   static const int _port = 8000;
 
   /// Resolves the correct base URL for whichever platform/emulator this
