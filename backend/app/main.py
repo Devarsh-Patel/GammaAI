@@ -1,6 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import compare, voice, search
+import os
+from dotenv import load_dotenv
+
+# Load API keys from the kotlin/new.properties file
+properties_path = os.path.join(os.path.dirname(__file__), "../../kotlin/new.properties")
+load_dotenv(dotenv_path=properties_path)
 
 app = FastAPI(title="GammaAI Backend")
 
