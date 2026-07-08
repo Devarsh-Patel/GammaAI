@@ -123,6 +123,10 @@ class SearchViewModel extends ChangeNotifier {
       _result = response;
       _stage = SearchStage.done;
       fetchHistory(); // Update history after search
+    } on SocketException {
+      _clearTimers();
+      _errorMessage = 'Could not connect to the backend. Ensure it is running at ${_apiService.baseUrl}';
+      _stage = SearchStage.error;
     } on ApiException catch (e) {
       _clearTimers();
       _errorMessage = e.message;

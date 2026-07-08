@@ -95,24 +95,15 @@ class _SearchViewState extends State<SearchView> {
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'γ', // Greek Gamma symbol
+            children: const [
+              Text(
+                'γ', // Greek Gamma symbol logo
                 style: TextStyle(
-                  fontSize: 28,
+                  fontSize: 32,
                   fontWeight: FontWeight.bold,
                   color: Colors.deepPurple,
                   fontFamily: 'serif',
                 ),
-              ),
-              const SizedBox(width: 6),
-              Text(
-                'GammaAI',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.deepPurple,
-                      letterSpacing: 1.2,
-                    ),
               ),
             ],
           ),
