@@ -122,6 +122,7 @@ class SearchViewModel extends ChangeNotifier {
       _clearTimers();
       _result = response;
       _stage = SearchStage.done;
+      fetchHistory(); // Update history after search
     } on ApiException catch (e) {
       _clearTimers();
       _errorMessage = e.message;
@@ -143,6 +144,7 @@ class SearchViewModel extends ChangeNotifier {
   CompareStage _compareStage = CompareStage.idle;
   ComparisonResponse? _comparison;
   String? _compareError;
+  List<dynamic> _history = [];
 
   final ImagePicker _picker = ImagePicker();
   final FlutterTts _tts = FlutterTts();
@@ -154,6 +156,12 @@ class SearchViewModel extends ChangeNotifier {
   String? get compareError => _compareError;
   bool get isComparing => _compareStage == CompareStage.comparing;
   File? get selectedImageFile => _selectedImageFile;
+  List<dynamic> get history => _history;
+
+  Future<void> fetchHistory() async {
+    _history = await _apiService.getHistory();
+    notifyListeners();
+  }
 
   Future<void> pickImage() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
@@ -194,6 +202,7 @@ class SearchViewModel extends ChangeNotifier {
       );
       _comparison = response;
       _compareStage = CompareStage.done;
+      fetchHistory(); // Update history after comparison
     } on ApiException catch (e) {
       _compareError = e.message;
       _compareStage = CompareStage.error;

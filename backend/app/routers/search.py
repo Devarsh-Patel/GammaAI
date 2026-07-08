@@ -5,6 +5,7 @@ from app.models.search_schemas import (
 )
 from app.services.llm_providers import ask_claude
 from app.services.search_service import perform_web_search
+from app.routers.history import add_to_history
 import json
 
 router = APIRouter()
@@ -14,6 +15,8 @@ async def search(request: SearchRequest):
     query = request.query.strip()
     if not query:
         raise HTTPException(status_code=400, detail="Query must not be empty.")
+
+    add_to_history(query, "search")
 
     # 1. Plan
     plan_prompt = f"Plan a search for: {query}. Break it into 3 sub-tasks. Return ONLY JSON: {{\"sub_tasks\": [\"desc1\", \"desc2\", \"desc3\"]}}"

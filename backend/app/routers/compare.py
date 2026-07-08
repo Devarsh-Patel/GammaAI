@@ -20,6 +20,7 @@ from app.models.comparison_schemas import (
 )
 from app.services.multi_llm_service import ask_all_providers
 from app.services.judge_service import judge_answers
+from app.routers.history import add_to_history
 
 router = APIRouter()
 
@@ -29,6 +30,8 @@ async def compare(request: ComparisonRequest) -> ComparisonResponse:
     query = request.query.strip()
     if not query:
         raise HTTPException(status_code=400, detail="Query must not be empty.")
+
+    add_to_history(query, "compare")
 
     if request.mode not in ("pick_best", "synthesize"):
         raise HTTPException(status_code=400, detail="mode must be 'pick_best' or 'synthesize'.")

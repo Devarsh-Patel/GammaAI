@@ -36,6 +36,15 @@ class _SearchViewState extends State<SearchView> {
   bool _useCouncil = false;
 
   @override
+  void initState() {
+    super.initState();
+    // Initial fetch of history
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<SearchViewModel>().fetchHistory();
+    });
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     super.dispose();
@@ -76,10 +85,49 @@ class _SearchViewState extends State<SearchView> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('GammaAI Search')),
+      drawer: Drawer(
+        child: Column(
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(color: Colors.deepPurple),
+              child: Center(
+                child: Text(
+                  'Search History',
+                  style: TextStyle(color: Colors.white, fontSize: 24),
+                ),
+              ),
+            ),
+            Expanded(
+              child: viewModel.history.isEmpty
+                  ? const Center(child: Text('No history yet'))
+                  : ListView.builder(
+                      itemCount: viewModel.history.length,
+                      itemBuilder: (context, index) {
+                        final item = viewModel.history[index];
+                        return ListTile(
+                          leading: Icon(item['type'] == 'search'
+                              ? Icons.search
+                              : Icons.compare),
+                          title: Text(item['query']),
+                          subtitle: Text(item['timestamp'].toString().split('T')[0]),
+                          onTap: () {
+                            _controller.text = item['query'];
+                            Navigator.pop(context); // Close drawer
+                            submit();
+                          },
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
+            Expanded(child: _buildBody(viewModel)),
+            const Divider(),
             if (viewModel.selectedImageFile != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 8.0),
@@ -128,8 +176,6 @@ class _SearchViewState extends State<SearchView> {
                       // Rebuild to show/hide the clear button
                       setState(() {});
                     },
-                    // context.read (not watch) here: we're just CALLING a
-                    // method, not subscribing this callback to rebuilds.
                     onSubmitted: (_) => submit(),
                     textInputAction: TextInputAction.search,
                   ),
@@ -142,8 +188,6 @@ class _SearchViewState extends State<SearchView> {
               ],
             ),
             const SizedBox(height: 12),
-            // Lets the user pick between the normal single-pipeline search
-            // and the multi-LLM council (Claude vs GPT vs Gemini vs Grok).
             Align(
               alignment: Alignment.centerLeft,
               child: FilterChip(
@@ -155,8 +199,6 @@ class _SearchViewState extends State<SearchView> {
                     : (selected) => setState(() => _useCouncil = selected),
               ),
             ),
-            const SizedBox(height: 12),
-            Expanded(child: _buildBody(viewModel)),
           ],
         ),
       ),

@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import compare, voice, search
+from app.routers import compare, voice, search, history
 import os
 from dotenv import load_dotenv
 
@@ -22,6 +22,7 @@ app.add_middleware(
 app.include_router(compare.router)
 app.include_router(voice.router)
 app.include_router(search.router)
+app.include_router(history.router)
 
 @app.get("/health")
 async def health_check():

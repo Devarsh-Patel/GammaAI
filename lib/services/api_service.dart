@@ -147,6 +147,21 @@ class ApiService {
       return false;
     }
   }
+
+  /// Fetches history items from the backend.
+  Future<List<dynamic>> getHistory() async {
+    final uri = Uri.parse('$baseUrl/history');
+    try {
+      final response = await http.get(uri).timeout(const Duration(seconds: 10));
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+        return decoded['history'] as List<dynamic>;
+      }
+    } catch (e) {
+      print('Failed to fetch history: $e');
+    }
+    return [];
+  }
 }
 
 class ApiException implements Exception {
