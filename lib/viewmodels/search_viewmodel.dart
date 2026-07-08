@@ -125,7 +125,7 @@ class SearchViewModel extends ChangeNotifier {
       fetchHistory(); // Update history after search
     } on SocketException {
       _clearTimers();
-      _errorMessage = 'Could not connect to the backend. Ensure it is running at ${_apiService.baseUrl}';
+      _errorMessage = 'Could not connect to the backend. Ensure it is running at ${ApiService.baseUrl}';
       _stage = SearchStage.error;
     } on ApiException catch (e) {
       _clearTimers();
@@ -207,6 +207,9 @@ class SearchViewModel extends ChangeNotifier {
       _comparison = response;
       _compareStage = CompareStage.done;
       fetchHistory(); // Update history after comparison
+    } on SocketException {
+      _compareError = 'Could not connect to the backend. Ensure it is running at ${ApiService.baseUrl}';
+      _compareStage = CompareStage.error;
     } on ApiException catch (e) {
       _compareError = e.message;
       _compareStage = CompareStage.error;
