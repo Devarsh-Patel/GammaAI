@@ -6,7 +6,9 @@ from dotenv import load_dotenv
 
 # Load API keys from the kotlin/new.properties file
 properties_path = os.path.join(os.path.dirname(__file__), "../../kotlin/new.properties")
-load_dotenv(dotenv_path=properties_path)
+if os.path.exists(properties_path):
+    load_dotenv(dotenv_path=properties_path)
+
 
 app = FastAPI(title="GammaAI Backend")
 

@@ -23,16 +23,13 @@ class ApiService {
   /// build is currently running on.
   static String get baseUrl {
     if (kIsWeb) {
-      // For web, we usually hit the same host or a specific API domain.
-      // During local dev, 'localhost' works if the backend is on the same machine.
-      return 'http://localhost:$_port';
+      return 'http://127.0.0.1:$_port';
     }
     if (Platform.isAndroid) {
-      // Assumes the Android EMULATOR.
       return 'http://10.0.2.2:$_port';
     }
-    // iOS Simulator or macOS Desktop
-    return 'http://localhost:$_port';
+    // Use 127.0.0.1 instead of localhost for better reliability on macOS/iOS
+    return 'http://127.0.0.1:$_port';
   }
 
   /// Calls POST /search and returns the parsed SearchResponse Model.

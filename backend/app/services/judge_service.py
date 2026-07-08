@@ -112,16 +112,22 @@ async def judge_answers(
         }
 
     try:
-        cleaned = judge_result.answer.strip().removeprefix("```json").removesuffix("```").strip()
+        # Robust JSON extraction: finds the first { and last }
+        start = judge_result.answer.find('{')
+        end = judge_result.answer.rfind('}')
+        if start == -1 or end == -1:
+            raise ValueError("No JSON object found in response")
+        
+        cleaned = judge_result.answer[start:end+1]
         parsed = json.loads(cleaned)
         return parsed
-    except Exception:
+    except Exception as e:
         # Judge didn't return clean JSON — still surface something useful.
         fallback = max(ok_answers, key=lambda a: len(a.answer))
         return {
             "scores": [],
             "winner_provider": fallback.provider,
             "final_answer": judge_result.answer or fallback.answer,
-            "reasoning": "Judge response could not be parsed as JSON; "
+            "reasoning": f"Judge response could not be parsed as JSON ({str(e)}); "
                          "showing raw judge output or a fallback answer.",
         }
