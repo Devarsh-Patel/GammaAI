@@ -23,7 +23,7 @@ from __future__ import annotations
 import json
 from typing import List, Literal
 
-from .llm_providers import PROVIDER_FUNCS, ProviderAnswer
+from .llm_providers import ProviderAnswer, ask_agent_llm
 
 JUDGE_PROVIDER = "claude"   # which provider acts as referee
 JUDGE_MODEL = "claude-3-5-sonnet-20240620"
@@ -96,8 +96,7 @@ async def judge_answers(
         }
 
     prompt = _build_judge_prompt(query, ok_answers, mode)
-    judge_call = PROVIDER_FUNCS[JUDGE_PROVIDER]
-    judge_result = await judge_call(prompt, model=JUDGE_MODEL)
+    judge_result = await ask_agent_llm(prompt)
 
     if not judge_result.ok:
         # Judge itself failed — fall back to the longest answer as a

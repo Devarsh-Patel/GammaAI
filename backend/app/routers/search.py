@@ -3,7 +3,7 @@ from app.models.search_schemas import (
     SearchRequest, SearchResponse, PlannerOutput,
     SubTask, SearchResultItem, SynthesizedAnswer
 )
-from app.services.llm_providers import ask_claude
+from app.services.llm_providers import ask_agent_llm
 from app.services.search_service import perform_web_search
 from app.routers.history import add_to_history
 import json
@@ -20,7 +20,7 @@ async def search(request: SearchRequest):
 
     # 1. Plan
     plan_prompt = f"Plan a search for: {query}. Break it into 3 sub-tasks. Return ONLY JSON: {{\"sub_tasks\": [\"desc1\", \"desc2\", \"desc3\"]}}"
-    plan_resp = await ask_claude(plan_prompt)
+    plan_resp = await ask_agent_llm(plan_prompt)
     if not plan_resp.ok:
         raise HTTPException(status_code=500, detail=f"Planning failed: {plan_resp.error}")
 
@@ -54,7 +54,7 @@ async def search(request: SearchRequest):
     # 3. Synthesize
     context = "\n---\n".join([r.raw_findings for r in search_results])
     synth_prompt = f"Using this search context:\n{context}\n\nSynthesize a comprehensive answer for the user's question: '{query}'"
-    synth_resp = await ask_claude(synth_prompt)
+    synth_resp = await ask_agent_llm(synth_prompt)
 
     final = SynthesizedAnswer(
         answer=synth_resp.answer if synth_resp.ok else f"Synthesis failed: {synth_resp.error}",

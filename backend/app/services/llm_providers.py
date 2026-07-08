@@ -54,6 +54,30 @@ def _get_key(env_var: str) -> Optional[str]:
 
 
 # --------------------------------------------------------------------------
+# Helper for Agent Internal Logic (Planner/Judge)
+# --------------------------------------------------------------------------
+async def ask_agent_llm(prompt: str, image_b64: Optional[str] = None) -> ProviderAnswer:
+    """
+    Pick the best available LLM to power the agent's internal reasoning.
+    Prioritizes direct keys, then falls back to AIsa Unified API.
+    """
+    # 1. Try Claude Direct
+    if _get_key("ANTHROPIC_API_KEY"):
+        return await ask_claude(prompt, image_b64=image_b64)
+    
+    # 2. Try AIsa (Unified)
+    if _get_key("AISA_API_KEY"):
+        # Use AIsa to call Claude 3.5 Sonnet (default best for agents)
+        return await ask_aisa(prompt, model="claude-3-5-sonnet", image_b64=image_b64)
+    
+    # 3. Try OpenAI Direct
+    if _get_key("OPENAI_API_KEY"):
+        return await ask_openai(prompt, image_b64=image_b64)
+        
+    return ProviderAnswer("agent", "none", False, error="No valid API keys found in new.properties (Need AISA_API_KEY or ANTHROPIC_API_KEY)")
+
+
+# --------------------------------------------------------------------------
 # Claude (Anthropic)
 # --------------------------------------------------------------------------
 async def ask_claude(
