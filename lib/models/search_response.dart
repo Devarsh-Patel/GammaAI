@@ -5,7 +5,6 @@
 /// Pure data classes with zero business logic and zero Flutter/UI imports.
 /// They only know how to parse themselves from JSON. Mirrors the backend's
 /// Pydantic schemas (see backend/app/models/schemas.py) — keep both in sync.
-
 library;
 
 class SubTask {

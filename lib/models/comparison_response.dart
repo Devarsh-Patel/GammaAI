@@ -2,7 +2,6 @@
 /// -------------------------
 /// MODEL LAYER for the new /compare endpoint (multi-LLM council).
 /// Mirrors backend/app/models/comparison_schemas.py — keep both in sync.
-
 library;
 
 class ProviderAnswer {

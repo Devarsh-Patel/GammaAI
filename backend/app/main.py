@@ -1,8 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import compare, voice, search, history
 import os
+import uvicorn
 from dotenv import load_dotenv
+
+from app.routers import compare, voice, search, history
 
 # Load API keys from the kotlin/new.properties file
 properties_path = os.path.join(os.path.dirname(__file__), "../../kotlin/new.properties")
@@ -31,5 +33,4 @@ async def health_check():
     return {"status": "ok"}
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

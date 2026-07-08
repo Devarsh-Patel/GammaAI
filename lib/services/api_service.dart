@@ -10,7 +10,7 @@
 library;
 
 import 'dart:convert';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'dart:io' show Platform;
 import 'package:http/http.dart' as http;
 import '../models/search_response.dart';
@@ -155,7 +155,7 @@ class ApiService {
         return decoded['history'] as List<dynamic>;
       }
     } catch (e) {
-      print('Failed to fetch history: $e');
+      debugPrint('Failed to fetch history: $e');
     }
     return [];
   }

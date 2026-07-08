@@ -113,12 +113,13 @@ async def judge_answers(
 
     try:
         # Robust JSON extraction: finds the first { and last }
-        start = judge_result.answer.find('{')
-        end = judge_result.answer.rfind('}')
+        content = judge_result.answer
+        start = content.find('{')
+        end = content.rfind('}')
         if start == -1 or end == -1:
-            raise ValueError("No JSON object found in response")
+            raise Exception("No JSON object found in response")
         
-        cleaned = judge_result.answer[start:end+1]
+        cleaned = content[start:end+1]
         parsed = json.loads(cleaned)
         return parsed
     except Exception as e:
