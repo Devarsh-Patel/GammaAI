@@ -84,7 +84,40 @@ class _SearchViewState extends State<SearchView> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('GammaAI Search')),
+      appBar: AppBar(
+        centerTitle: true,
+        title: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.deepPurple.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.deepPurple.withOpacity(0.3)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'γ', // Greek Gamma symbol
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.deepPurple,
+                  fontFamily: 'serif',
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'GammaAI',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.deepPurple,
+                      letterSpacing: 1.2,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      ),
       drawer: Drawer(
         child: Column(
           children: [
