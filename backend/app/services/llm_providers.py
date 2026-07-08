@@ -46,6 +46,13 @@ def _now_ms() -> int:
     return int(time.time() * 1000)
 
 
+def _get_key(env_var: str) -> Optional[str]:
+    key = os.getenv(env_var)
+    if not key or "YOUR_ACTUAL_KEY" in key or "your_key_here" in key:
+        return None
+    return key
+
+
 # --------------------------------------------------------------------------
 # Claude (Anthropic)
 # --------------------------------------------------------------------------
@@ -54,9 +61,9 @@ async def ask_claude(
     model: str = "claude-3-5-sonnet-20240620",
     image_b64: Optional[str] = None
 ) -> ProviderAnswer:
-    key = os.getenv("ANTHROPIC_API_KEY")
+    key = _get_key("ANTHROPIC_API_KEY")
     if not key:
-        return ProviderAnswer("claude", model, False, error="ANTHROPIC_API_KEY not set")
+        return ProviderAnswer("claude", model, False, error="ANTHROPIC_API_KEY is missing or invalid in new.properties")
 
     started = _now_ms()
     content = []
@@ -107,9 +114,9 @@ async def ask_openai(
     model: str = "gpt-4o",
     image_b64: Optional[str] = None
 ) -> ProviderAnswer:
-    key = os.getenv("OPENAI_API_KEY")
+    key = _get_key("OPENAI_API_KEY")
     if not key:
-        return ProviderAnswer("openai", model, False, error="OPENAI_API_KEY not set")
+        return ProviderAnswer("openai", model, False, error="OPENAI_API_KEY is missing or invalid in new.properties")
 
     started = _now_ms()
     content = [{"type": "text", "text": prompt}]
@@ -151,9 +158,9 @@ async def ask_gemini(
     model: str = "gemini-1.5-flash",
     image_b64: Optional[str] = None
 ) -> ProviderAnswer:
-    key = os.getenv("GOOGLE_API_KEY")
+    key = _get_key("GOOGLE_API_KEY")
     if not key:
-        return ProviderAnswer("gemini", model, False, error="GOOGLE_API_KEY not set")
+        return ProviderAnswer("gemini", model, False, error="GOOGLE_API_KEY is missing or invalid in new.properties")
 
     started = _now_ms()
     url = (
@@ -194,9 +201,9 @@ async def ask_grok(
     model: str = "grok-vision-beta",
     image_b64: Optional[str] = None
 ) -> ProviderAnswer:
-    key = os.getenv("XAI_API_KEY")
+    key = _get_key("XAI_API_KEY")
     if not key:
-        return ProviderAnswer("grok", model, False, error="XAI_API_KEY not set")
+        return ProviderAnswer("grok", model, False, error="XAI_API_KEY is missing or invalid in new.properties")
 
     started = _now_ms()
     # Grok vision uses OpenAI format

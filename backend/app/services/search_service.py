@@ -8,9 +8,9 @@ async def perform_web_search(query: str) -> List[Dict]:
     Get a free key at https://serper.dev
     """
     api_key = os.getenv("SERPER_API_KEY")
-    if not api_key:
+    if not api_key or "YOUR_ACTUAL_KEY" in api_key or "your_google_search_key_here" in api_key:
         # Fallback to a mock if no key is provided
-        return [{"title": "No Search Key", "snippet": "Please set SERPER_API_KEY in .env", "link": "https://serper.dev"}]
+        return [{"title": "No Search Key", "snippet": "Please set SERPER_API_KEY in kotlin/new.properties", "link": "https://serper.dev"}]
 
     url = "https://google.serper.dev/search"
     headers = {
