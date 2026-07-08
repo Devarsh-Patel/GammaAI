@@ -216,7 +216,7 @@ class _SearchViewState extends State<SearchView> {
               alignment: Alignment.centerLeft,
               child: FilterChip(
                 avatar: const Icon(Icons.groups_outlined, size: 18),
-                label: const Text('Compare Claude / GPT / Gemini / Grok'),
+                label: const Text('Compare Claude / GPT / Gemini / Grok / AIsa'),
                 selected: _useCouncil,
                 onSelected: busy
                     ? null

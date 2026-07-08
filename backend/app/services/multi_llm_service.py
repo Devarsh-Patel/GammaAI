@@ -24,6 +24,7 @@ _REQUIRED_KEY = {
     "openai": "OPENAI_API_KEY",
     "gemini": "GOOGLE_API_KEY",
     "grok": "XAI_API_KEY",
+    "aisa": "AISA_API_KEY",
 }
 
 

@@ -25,6 +25,8 @@ class ComparisonCard extends StatelessWidget {
         return Icons.star_outline;
       case 'grok':
         return Icons.bolt_outlined;
+      case 'aisa':
+        return Icons.hub_outlined;
       default:
         return Icons.smart_toy_outlined;
     }
@@ -40,6 +42,8 @@ class ComparisonCard extends StatelessWidget {
         return 'Gemini (Google)';
       case 'grok':
         return 'Grok (xAI)';
+      case 'aisa':
+        return 'AIsa (Unified)';
       default:
         return provider;
     }

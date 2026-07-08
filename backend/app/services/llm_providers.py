@@ -238,10 +238,55 @@ async def ask_grok(
                                latency_ms=_now_ms() - started)
 
 
+# --------------------------------------------------------------------------
+# AIsa (Unified API) — OpenAI-compatible chat completions
+# --------------------------------------------------------------------------
+async def ask_aisa(
+    prompt: str,
+    model: str = "aisa-router-v1", # AIsa's smart router
+    image_b64: Optional[str] = None
+) -> ProviderAnswer:
+    key = _get_key("AISA_API_KEY")
+    if not key:
+        return ProviderAnswer("aisa", model, False, error="AISA_API_KEY is missing or invalid in new.properties")
+
+    started = _now_ms()
+    content = [{"type": "text", "text": prompt}]
+    if image_b64:
+        content.append({
+            "type": "image_url",
+            "image_url": {"url": f"data:image/jpeg;base64,{image_b64}"},
+        })
+
+    try:
+        async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT) as client:
+            resp = await client.post(
+                "https://api.aisa.one/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": model,
+                    "messages": [{"role": "user", "content": content}],
+                    "max_tokens": 1024,
+                },
+            )
+        resp.raise_for_status()
+        data = resp.json()
+        text = data["choices"][0]["message"]["content"]
+        return ProviderAnswer("aisa", model, True, answer=text.strip(),
+                               latency_ms=_now_ms() - started)
+    except Exception as e:
+        return ProviderAnswer("aisa", model, False, error=str(e),
+                               latency_ms=_now_ms() - started)
+
+
 # Registry so the orchestrator can loop instead of hardcoding 4 calls.
 PROVIDER_FUNCS = {
     "claude": ask_claude,
     "openai": ask_openai,
     "gemini": ask_gemini,
     "grok": ask_grok,
+    "aisa": ask_aisa,
 }
