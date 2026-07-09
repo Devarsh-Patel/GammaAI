@@ -32,6 +32,15 @@ class SignInView extends StatelessWidget {
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 48),
+              if (authViewModel.errorMessage != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: Text(
+                    authViewModel.errorMessage!,
+                    style: const TextStyle(color: Colors.red),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
               if (authViewModel.isLoading)
                 const CircularProgressIndicator()
               else ...[
@@ -56,6 +65,11 @@ class SignInView extends StatelessWidget {
                     ),
                   ),
                 ],
+                const SizedBox(height: 24),
+                TextButton(
+                  onPressed: () => authViewModel.continueAsGuest(),
+                  child: const Text('Continue as Guest (Skip for now)'),
+                ),
               ],
             ],
           ),
