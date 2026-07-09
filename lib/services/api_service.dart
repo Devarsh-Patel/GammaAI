@@ -18,18 +18,23 @@ import '../models/comparison_response.dart';
 
 class ApiService {
   static const int _port = 8000;
+  
+  /// To run on a physical device, find your Mac's IP (e.g. 192.168.1.x)
+  /// and put it here. Otherwise, leave it as '127.0.0.1'.
+  static const String _serverIp = '127.0.0.1';
 
   /// Resolves the correct base URL for whichever platform/emulator this
   /// build is currently running on.
   static String get baseUrl {
     if (kIsWeb) {
-      return 'http://127.0.0.1:$_port';
+      return 'http://$_serverIp:$_port';
     }
     if (Platform.isAndroid) {
+      // 10.0.2.2 is the special alias for the host machine in Android Emulator
       return 'http://10.0.2.2:$_port';
     }
-    // Use 127.0.0.1 instead of localhost for better reliability on macOS/iOS
-    return 'http://127.0.0.1:$_port';
+    // For iOS Simulator or macOS Desktop
+    return 'http://$_serverIp:$_port';
   }
 
   /// Calls POST /search and returns the parsed SearchResponse Model.

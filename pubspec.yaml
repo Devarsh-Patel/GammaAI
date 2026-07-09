@@ -17,6 +17,8 @@ dependencies:
   flutter_tts: ^3.8.5
   path_provider: ^2.1.2
   record: ^5.0.4
+  google_sign_in: ^6.2.1
+  sign_in_with_apple: ^6.1.1
 
 dev_dependencies:
   flutter_test:

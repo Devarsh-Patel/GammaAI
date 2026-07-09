@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../viewmodels/search_viewmodel.dart';
+import '../viewmodels/auth_viewmodel.dart';
 import '../widgets/result_card.dart';
 import '../widgets/comparison_card.dart';
 
@@ -143,6 +144,15 @@ class _SearchViewState extends State<SearchView> {
                       },
                     ),
             ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text('Sign Out'),
+              onTap: () {
+                context.read<AuthViewModel>().signOut();
+              },
+            ),
+            const SizedBox(height: 16),
           ],
         ),
       ),

@@ -48,7 +48,11 @@ def _now_ms() -> int:
 
 def _get_key(env_var: str) -> Optional[str]:
     key = os.getenv(env_var)
-    if not key or "YOUR_ACTUAL_KEY" in key or "your_key_here" in key:
+    if not key:
+        return None
+    # Strip whitespace and quotes that might come from new.properties
+    key = key.strip().strip('"').strip("'")
+    if not key or "YOUR_ACTUAL_KEY" in key or "your_key_here" in key or "http" in key:
         return None
     return key
 
@@ -61,14 +65,13 @@ async def ask_agent_llm(prompt: str, image_b64: Optional[str] = None) -> Provide
     Pick the best available LLM to power the agent's internal reasoning.
     Prioritizes direct keys, then falls back to AIsa Unified API.
     """
-    # 1. Try Claude Direct
+    # 1. Try AIsa (Unified) - Often the most reliable if other keys are tricky
+    if _get_key("AISA_API_KEY"):
+        return await ask_aisa(prompt, model="claude-3-5-sonnet", image_b64=image_b64)
+
+    # 2. Try Claude Direct
     if _get_key("ANTHROPIC_API_KEY"):
         return await ask_claude(prompt, image_b64=image_b64)
-    
-    # 2. Try AIsa (Unified)
-    if _get_key("AISA_API_KEY"):
-        # Use AIsa to call Claude 3.5 Sonnet (default best for agents)
-        return await ask_aisa(prompt, model="claude-3-5-sonnet", image_b64=image_b64)
     
     # 3. Try OpenAI Direct
     if _get_key("OPENAI_API_KEY"):
@@ -117,14 +120,20 @@ async def ask_claude(
                     "messages": [{"role": "user", "content": content}],
                 },
             )
-        resp.raise_for_status()
-        data = resp.json()
-        text = "".join(
-            block.get("text", "") for block in data.get("content", [])
-            if block.get("type") == "text"
-        )
-        return ProviderAnswer("claude", model, True, answer=text.strip(),
-                               latency_ms=_now_ms() - started)
+            
+            # Handle potential non-JSON responses before calling .json()
+            if resp.status_code != 200:
+                return ProviderAnswer("claude", model, False, 
+                                       error=f"API Error {resp.status_code}: {resp.text}",
+                                       latency_ms=_now_ms() - started)
+            
+            data = resp.json()
+            text = "".join(
+                block.get("text", "") for block in data.get("content", [])
+                if block.get("type") == "text"
+            )
+            return ProviderAnswer("claude", model, True, answer=text.strip(),
+                                   latency_ms=_now_ms() - started)
     except Exception as e:
         return ProviderAnswer("claude", model, False, error=str(e),
                                latency_ms=_now_ms() - started)
