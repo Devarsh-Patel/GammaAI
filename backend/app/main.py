@@ -9,7 +9,7 @@ from app.routers import compare, voice, search, history
 # Load API keys from the kotlin/new.properties file
 properties_path = os.path.join(os.path.dirname(__file__), "../../kotlin/new.properties")
 if os.path.exists(properties_path):
-    load_dotenv(dotenv_path=properties_path)
+    load_dotenv(dotenv_path=properties_path, override=True)
 
 
 app = FastAPI(title="GammaAI Backend")

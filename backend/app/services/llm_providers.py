@@ -52,8 +52,12 @@ def _get_key(env_var: str) -> Optional[str]:
         return None
     # Strip whitespace and quotes that might come from new.properties
     key = key.strip().strip('"').strip("'")
-    if not key or "YOUR_ACTUAL_KEY" in key or "your_key_here" in key or "http" in key:
+    
+    # Placeholder detection: ignore generic instructional text
+    # We support both 'AIza' (Old) and 'AQ.' (New) Gemini key formats.
+    if "YOUR_ACTUAL_KEY" in key or "your_key_here" in key or "http" in key:
         return None
+
     return key
 
 
@@ -62,26 +66,37 @@ def _get_key(env_var: str) -> Optional[str]:
 # --------------------------------------------------------------------------
 async def ask_agent_llm(prompt: str, image_b64: Optional[str] = None) -> ProviderAnswer:
     """
-    Pick the best available LLM to power the agent's internal reasoning.
-    Prioritizes direct keys, then falls back to AIsa Unified API.
+    Tries all available keys in order until one succeeds.
+    Prioritizes Claude, then AIsa, then OpenAI, then Gemini.
     """
-    # 1. Try AIsa (Unified)
-    if _get_key("AISA_API_KEY"):
-        return await ask_aisa(prompt, model="claude-3-5-sonnet", image_b64=image_b64)
+    errors = []
 
-    # 2. Try Claude Direct
+    # 1. Try Claude Direct
     if _get_key("ANTHROPIC_API_KEY"):
-        return await ask_claude(prompt, image_b64=image_b64)
+        resp = await ask_claude(prompt, image_b64=image_b64)
+        if resp.ok: return resp
+        errors.append(f"Claude: {resp.error}")
     
-    # 3. Try Google Gemini (Now supported as an agent brain!)
-    if _get_key("GOOGLE_API_KEY"):
-        return await ask_gemini(prompt, image_b64=image_b64)
-
-    # 4. Try OpenAI Direct
+    # 2. Try AIsa (Unified)
+    if _get_key("AISA_API_KEY"):
+        resp = await ask_aisa(prompt, model="claude-3-5-sonnet", image_b64=image_b64)
+        if resp.ok: return resp
+        errors.append(f"AIsa: {resp.error}")
+    
+    # 3. Try OpenAI Direct
     if _get_key("OPENAI_API_KEY"):
-        return await ask_openai(prompt, image_b64=image_b64)
+        resp = await ask_openai(prompt, image_b64=image_b64)
+        if resp.ok: return resp
+        errors.append(f"OpenAI: {resp.error}")
+
+    # 4. Try Gemini Direct
+    if _get_key("GOOGLE_API_KEY"):
+        resp = await ask_gemini(prompt, image_b64=image_b64)
+        if resp.ok: return resp
+        errors.append(f"Gemini: {resp.error}")
         
-    return ProviderAnswer("agent", "none", False, error="No valid API keys found in new.properties (Need GOOGLE_API_KEY, AISA_API_KEY or ANTHROPIC_API_KEY)")
+    combined_error = " | ".join(errors) if errors else "No API keys set in new.properties"
+    return ProviderAnswer("agent", "none", False, error=f"All providers failed: {combined_error}")
 
 
 # --------------------------------------------------------------------------
