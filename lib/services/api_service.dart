@@ -27,14 +27,14 @@ class ApiService {
   /// build is currently running on.
   static String get baseUrl {
     if (kIsWeb) {
-      return 'http://$_serverIp:$_port';
+      return 'http://127.0.0.1:$_port';
     }
     if (Platform.isAndroid) {
       // 10.0.2.2 is the special alias for the host machine in Android Emulator
       return 'http://10.0.2.2:$_port';
     }
-    // For iOS Simulator or macOS Desktop
-    return 'http://$_serverIp:$_port';
+    // For macOS Desktop or iOS Simulator
+    return 'http://127.0.0.1:$_port';
   }
 
   /// Calls POST /search and returns the parsed SearchResponse Model.
