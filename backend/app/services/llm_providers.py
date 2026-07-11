@@ -65,7 +65,7 @@ async def ask_agent_llm(prompt: str, image_b64: Optional[str] = None) -> Provide
     Pick the best available LLM to power the agent's internal reasoning.
     Prioritizes direct keys, then falls back to AIsa Unified API.
     """
-    # 1. Try AIsa (Unified) - Often the most reliable if other keys are tricky
+    # 1. Try AIsa (Unified)
     if _get_key("AISA_API_KEY"):
         return await ask_aisa(prompt, model="claude-3-5-sonnet", image_b64=image_b64)
 
@@ -73,11 +73,15 @@ async def ask_agent_llm(prompt: str, image_b64: Optional[str] = None) -> Provide
     if _get_key("ANTHROPIC_API_KEY"):
         return await ask_claude(prompt, image_b64=image_b64)
     
-    # 3. Try OpenAI Direct
+    # 3. Try Google Gemini (Now supported as an agent brain!)
+    if _get_key("GOOGLE_API_KEY"):
+        return await ask_gemini(prompt, image_b64=image_b64)
+
+    # 4. Try OpenAI Direct
     if _get_key("OPENAI_API_KEY"):
         return await ask_openai(prompt, image_b64=image_b64)
         
-    return ProviderAnswer("agent", "none", False, error="No valid API keys found in new.properties (Need AISA_API_KEY or ANTHROPIC_API_KEY)")
+    return ProviderAnswer("agent", "none", False, error="No valid API keys found in new.properties (Need GOOGLE_API_KEY, AISA_API_KEY or ANTHROPIC_API_KEY)")
 
 
 # --------------------------------------------------------------------------
