@@ -20,6 +20,8 @@ class AuthService {
 
   Future<AuthorizationCredentialAppleID?> signInWithApple() async {
     try {
+      if (kIsWeb) return null; // Apple Sign-In on Web requires different setup
+
       if (Platform.isMacOS || Platform.isIOS) {
         final credential = await SignInWithApple.getAppleIDCredential(
           scopes: [

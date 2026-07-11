@@ -29,9 +29,14 @@ class ApiService {
     if (kIsWeb) {
       return 'http://127.0.0.1:$_port';
     }
-    if (Platform.isAndroid) {
-      // 10.0.2.2 is the special alias for the host machine in Android Emulator
-      return 'http://10.0.2.2:$_port';
+    // Only use Platform after checking kIsWeb to avoid crashes on web
+    try {
+      if (Platform.isAndroid) {
+        // 10.0.2.2 is the special alias for the host machine in Android Emulator
+        return 'http://10.0.2.2:$_port';
+      }
+    } catch (_) {
+      // Fallback for safety
     }
     // For macOS Desktop or iOS Simulator
     return 'http://127.0.0.1:$_port';

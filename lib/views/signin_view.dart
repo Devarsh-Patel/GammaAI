@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
 import '../viewmodels/auth_viewmodel.dart';
 import 'dart:io';
@@ -9,6 +10,15 @@ class SignInView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authViewModel = context.watch<AuthViewModel>();
+
+    bool showAppleSignIn = false;
+    if (!kIsWeb) {
+      try {
+        if (Platform.isIOS || Platform.isMacOS) {
+          showAppleSignIn = true;
+        }
+      } catch (_) {}
+    }
 
     return Scaffold(
       body: Center(
@@ -52,7 +62,7 @@ class SignInView extends StatelessWidget {
                     minimumSize: const Size(double.infinity, 50),
                   ),
                 ),
-                if (Platform.isIOS || Platform.isMacOS) ...[
+                if (showAppleSignIn) ...[
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
                     onPressed: () => authViewModel.signInWithApple(),
